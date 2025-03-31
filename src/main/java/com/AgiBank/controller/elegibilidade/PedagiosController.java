@@ -20,13 +20,13 @@ public class PedagiosController {
 
     public double calcularBeneficio() {
         if (pedagios.isElegivelPedagio100()) {
-            regraAplicada = "Elegível ao pedágio 100%";
+            regraAplicada = "Pedágio 100% - Tempo de contribuição dobrado";
             return pedagios.calcularPedagio100();
         } else if (pedagios.isElegivelPedagio50()) {
-            regraAplicada = "Elegível ao pedágio 50%";
+            regraAplicada = "Pedágio 50% - Tempo adicional de 50% do que falta";
             return pedagios.calcularPedagio50();
         } else {
-            regraAplicada = "Nenhuma regra se aplica";
+            regraAplicada = "Nenhuma regra aplicada";
             return 0;
         }
     }

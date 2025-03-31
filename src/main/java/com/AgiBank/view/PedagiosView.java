@@ -18,8 +18,13 @@ public class PedagiosView {
         double beneficio = pedagiosController.calcularBeneficio();
         String regra = pedagiosController.getRegraAplicada();
 
-        System.out.println("Resultado do cálculo de benefício:");
-        System.out.println("Regra aplicada: " + regra);
-        System.out.println("Valor do benefício: " + beneficio);
+        System.out.println("\n=== Resultado do Cálculo de Aposentadoria ===");
+        if (beneficio > 0) {
+            System.out.println("Parabéns! Você se enquadra na seguinte regra: " + regra);
+            System.out.printf("O valor estimado do seu benefício é: R$ %.2f%n", beneficio);
+        } else {
+            System.out.println("Infelizmente, você ainda não atende aos critérios para aposentadoria.");
+            System.out.println("Recomenda-se revisar seu tempo de contribuição e idade.");
+        }
     }
 }

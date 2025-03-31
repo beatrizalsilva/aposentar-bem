@@ -1,4 +1,4 @@
-﻿package com.AgiBank.model;
+package com.AgiBank.model;
 import com.AgiBank.model.Contribuicao;
 import com.AgiBank.model.RegrasAposentadoria;
 
@@ -15,7 +15,15 @@ public class Pedagios extends RegrasAposentadoria {
         super(idade, genero, contribuicoes.size() * 12, 0); // Initialize the superclass with total months
         this.contribuicoes = filtrarContribuicoesValidas(contribuicoes);
         this.profissao = profissao;
-        this.setTempoContribuicaoEmMeses(Contribuicao.calcularAnosContribuidos(this.contribuicoes) * 12);
+        this.setTempoContribuicaoEmMeses(calcularTempoContribuicaoEmMeses(this.contribuicoes));
+    }
+
+    private int calcularTempoContribuicaoEmMeses(List<Contribuicao> contribuicoes) {
+        int totalMeses = 0;
+        for (Contribuicao contribuicao : contribuicoes) {
+            totalMeses += contribuicao.getPeriodoInicio().until(contribuicao.getPeriodoFim()).toTotalMonths();
+        }
+        return totalMeses;
     }
 
     private List<Contribuicao> filtrarContribuicoesValidas(List<Contribuicao> contribuicoes) {
@@ -41,43 +49,99 @@ public class Pedagios extends RegrasAposentadoria {
     }
 
     public boolean isElegivelPedagio50() {
-        int totalMeses = getTempoContribuicaoEmMeses();
-        int tempoComPedagio = totalMeses + (totalMeses / 2);
-        return tempoComPedagio >= 24;
+        int idade = getIdade();
+        int tempoTotal = getTempoContribuicaoEmMeses();
+
+        int idadeMinima;
+        int tempoMinimoContribuicao;
+        if (getGenero() == Genero.MASCULINO) {
+            idadeMinima = 57;
+            tempoMinimoContribuicao = 420;
+        } else {
+            idadeMinima = 55;
+            tempoMinimoContribuicao = 360;
+        }
+
+        if (idade < idadeMinima) {
+            System.out.println("Você ainda não atingiu a idade mínima de " + idadeMinima + " anos.");
+            return false;
+        }
+
+        int tempoFaltante = tempoMinimoContribuicao - tempoTotal;
+        if (tempoFaltante < 0) {
+            tempoFaltante = 0;
+        }
+        int tempoNecessarioComPedagio = tempoFaltante + (tempoFaltante / 2);
+
+//        System.out.println("=== Testando Pedágio 50% ===");
+//        System.out.println("Idade: " + idade);
+//        System.out.println("Tempo total de contribuição (meses): " + tempoTotal);
+//        System.out.println("Idade mínima necessária: " + idadeMinima);
+//        System.out.println("Tempo mínimo de contribuição necessário: " + tempoMinimoContribuicao);
+//        System.out.println("Tempo faltante: " + tempoFaltante);
+//        System.out.println("Tempo necessário com Pedágio 50%: " + tempoNecessarioComPedagio);
+        return tempoTotal >= tempoNecessarioComPedagio;
     }
 
     public boolean isElegivelPedagio100() {
         int idade = getIdade();
-        int tempoContribuicaoEmMeses = getTempoContribuicaoEmMeses();
+        int tempoContribuicao = getTempoContribuicaoEmMeses();
 
+        int idadeMinima;
+        int tempoMinimoContribuicao;
         if (getGenero() == Genero.MASCULINO) {
             if (profissao == Profissao.GERAL) {
-                return idade >= 60 && tempoContribuicaoEmMeses < 420;
-            } else if (profissao == Profissao.PROFESSOR) {
-                return idade >= 55 && tempoContribuicaoEmMeses < 360;
+                idadeMinima = 60;
+                tempoMinimoContribuicao = 420;
+            } else {
+                idadeMinima = 55;
+                tempoMinimoContribuicao = 360;
             }
-        } else if (getGenero() == Genero.FEMININO) {
+        } else {
             if (profissao == Profissao.GERAL) {
-                return idade >= 57 && tempoContribuicaoEmMeses < 360;
-            } else if (profissao == Profissao.PROFESSOR) {
-                return idade >= 52 && tempoContribuicaoEmMeses < 300;
+                idadeMinima = 57;
+                tempoMinimoContribuicao = 360;
+            } else {
+                idadeMinima = 52;
+                tempoMinimoContribuicao = 300;
             }
         }
 
-        return false;
+        if (idade < idadeMinima) {
+            System.out.println("Você ainda não atingiu a idade mínima de " + idadeMinima + " anos.");
+            return false;
+        }
+
+        int tempoFaltante = tempoMinimoContribuicao - tempoContribuicao;
+        if (tempoFaltante < 0) {
+            tempoFaltante = 0;
+        }
+
+        int tempoNecessario = tempoMinimoContribuicao + (2 * tempoFaltante);
+
+//        System.out.println("=== Testando Pedágio 100% ===");
+//        System.out.println("Idade: " + idade);
+//        System.out.println("Tempo total de contribuição (meses): " + tempoContribuicao);
+//        System.out.println("Idade mínima necessária: " + idadeMinima);
+//        System.out.println("Tempo mínimo de contribuição necessário: " + tempoMinimoContribuicao);
+//        System.out.println("Tempo faltante: " + tempoFaltante);
+//        System.out.println("Tempo necessário com Pedágio 100%: " + tempoNecessario);
+        return tempoContribuicao >= tempoNecessario;
     }
 
     public double calcularPedagio50() {
         double media = calcularMediaSalarial();
         FatorPrevidenciario fp = new FatorPrevidenciario(contribuicoes);
-        return media * fp.calcularFatorPrevidenciario();
+        double beneficio = media * fp.calcularFatorPrevidenciario();
+
+        System.out.println("Seu benefício pelo Pedágio 50% será: R$ " + beneficio);
+        return beneficio;
     }
 
     public double calcularPedagio100() {
-        return calcularMediaSalarial();
-    }
+        double beneficio = calcularMediaSalarial();
 
-    public double getBeneficio() {
-        return calcularMediaSalarial();
+        System.out.println("Seu benefício pelo Pedágio 100% será: R$ " + beneficio);
+        return beneficio;
     }
 }
